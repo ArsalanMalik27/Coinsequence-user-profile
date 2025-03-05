@@ -1,0 +1,56 @@
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GCR_REPO_NAME: "${{ secrets.GCR_REPO_NAME }}"
+      GCR_REPO_LOCATION: "${{ secrets.GCR_REPO_LOCATION }}"
+      GCR_SERVICE_ACCOUNT_EMAIL: "${{ secrets.GCR_SERVICE_ACCOUNT_EMAIL }}"
+      GC_PROJECT_ID: "${{ secrets.GC_PROJECT_ID }}"
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python 3.10
+        id: setup-python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.2.0b2
+          virtualenvs-create: true
+          virtualenvs-in-project: false
+          virtualenvs-path: ~/.venv
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.venv
+          key: venv-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::044541287254:role/gh-actions-role
+          aws-region: us-east-2
+
+      - name: Build Package and Upload
+        run: |
+          export CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token --domain coinsequence --query authorizationToken --output text)
+          poetry config http-basic.cq-packages aws $CODEARTIFACT_TOKEN
+          poetry publish --build --repository cq-packages

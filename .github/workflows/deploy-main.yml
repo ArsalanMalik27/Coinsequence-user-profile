@@ -1,0 +1,17 @@
+name: CD
+on:
+  push:
+    branches: main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v1
+
+      - name: deploy
+        uses: convox/action-deploy@v1
+        with:
+          rack: production
+          app: profile
+          password: ${{ secrets.CONVOX_DEPLOY_KEY }}

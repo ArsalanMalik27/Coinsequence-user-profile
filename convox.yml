@@ -1,0 +1,138 @@
+environment:
+  - ENVIRONMENT
+  - COMPANY=Coinsequence
+  - PINECONE_API_KEY
+services:
+  profile-web:
+    build:
+      context: ./../
+      manifest: ./docker/Dockerfile.production
+    environment:
+      - ENV=${ENVIRONMENT}
+      - PROJECT_NAME=CQProfile
+      # Database
+      - POSTGRES_SERVER
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+      # SNS/SQS
+      - AWS_REGION=${AWS_REGION}
+      - AWS_ACCESS_KEY
+      - AWS_SECRET
+      - SNS__PROFILE_UPDATED=profile-updated
+      - SQS__USER_UPDATED=accounts-user-updated-profile
+      - SQS__KARMA_COIN_MINTED=karmapost-karma-coins-minted-profile
+      - SQS__STUDENT_FUNDS_COURSES_UPDATED=funds-student_funds_courses_updated-profile
+      - S3_MEDIA_BUCKET=cq-${ENVIRONMENT}
+      - SENTRY_DNS
+      - PINECONE_API_KEY=a1249be8-e791-4271-a123-1c70e47ec9b9
+      - PINECONE_ENVIRONMENT=gcp-starter
+      - PINECONE_INDEX_NAME=ak-quickstartz
+    health:
+      grace: 60
+      interval: 30
+      path: /api/v1/health/
+      timeout: 20
+    port: 8000
+    termination:
+      grace: 30
+    scale:
+      count: 1-2
+      cpu: 3072
+      memory: 3072
+
+  # profile-user-updated-consumer:
+  #   build:
+  #     context: ./../
+  #     manifest: ./docker/Dockerfile.user_updated_consumer.production
+  #   environment:
+  #     - ENV=${ENVIRONMENT}
+  #     - PROJECT_NAME=CQProfile
+  #     # Database
+  #     - POSTGRES_SERVER
+  #     - POSTGRES_USER
+  #     - POSTGRES_PASSWORD
+  #     - POSTGRES_DB
+  #     # SNS/SQS
+  #     - AWS_REGION=${AWS_REGION}
+  #     - AWS_ACCESS_KEY
+  #     - AWS_SECRET
+  #     - SNS__PROFILE_UPDATED=profile-updated
+  #     - SQS__USER_UPDATED=accounts-user-updated-profile
+  #     - SQS__KARMA_COIN_MINTED=karmapost-karma-coins-minted-profile
+  #     - SQS__STUDENT_FUNDS_COURSES_UPDATED=funds-student_funds_courses_updated-profile
+  #     - S3_MEDIA_BUCKET=cq-${ENVIRONMENT}
+  #     - SENTRY_DNS
+  #     - PINECONE_API_KEY=a1249be8-e791-4271-a123-1c70e47ec9b9
+  #     - PINECONE_ENVIRONMENT=gcp-starter
+  #     - PINECONE_INDEX_NAME=ak-quickstartz
+  #   termination:
+  #     grace: 30
+  #   scale:
+  #     count: 1-2
+  #     cpu: 256
+  #     memory: 512
+
+  # profile-karma-coins-minted-consumer:
+  #   build:
+  #     context: ./../
+  #     manifest: ./docker/Dockerfile.karma_coins_minted_consumer.production
+  #   environment:
+  #     - ENV=${ENVIRONMENT}
+  #     - PROJECT_NAME=CQProfile
+  #     # Database
+  #     - POSTGRES_SERVER
+  #     - POSTGRES_USER
+  #     - POSTGRES_PASSWORD
+  #     - POSTGRES_DB
+  #     # SNS/SQS
+  #     - AWS_REGION=${AWS_REGION}
+  #     - AWS_ACCESS_KEY
+  #     - AWS_SECRET
+  #     - SNS__PROFILE_UPDATED=profile-updated
+  #     - SQS__USER_UPDATED=accounts-user-updated-profile
+  #     - SQS__KARMA_COIN_MINTED=karmapost-karma-coins-minted-profile
+  #     - SQS__STUDENT_FUNDS_COURSES_UPDATED=funds-student_funds_courses_updated-profile
+  #     - S3_MEDIA_BUCKET=cq-${ENVIRONMENT}
+  #     - SENTRY_DNS
+  #     - PINECONE_API_KEY=a1249be8-e791-4271-a123-1c70e47ec9b9
+  #     - PINECONE_ENVIRONMENT=gcp-starter
+  #     - PINECONE_INDEX_NAME=ak-quickstartz
+  #   termination:
+  #     grace: 30
+  #   scale:
+  #     count: 1-2
+  #     cpu: 256
+  #     memory: 512
+
+  # profile-student-funds-courses-updated-consumer:
+  #   build:
+  #     context: ./../
+  #     manifest: ./docker/Dockerfile.student_funds_courses_updated_consumer.production
+  #   environment:
+  #     - ENV=${ENVIRONMENT}
+  #     - PROJECT_NAME=CQProfile
+  #     # Database
+  #     - POSTGRES_SERVER
+  #     - POSTGRES_USER
+  #     - POSTGRES_PASSWORD
+  #     - POSTGRES_DB
+  #     # SNS/SQS
+  #     - AWS_REGION=${AWS_REGION}
+  #     - AWS_ACCESS_KEY
+  #     - AWS_SECRET
+  #     - SNS__PROFILE_UPDATED=profile-updated
+  #     - SQS__USER_UPDATED=accounts-user-updated-profile
+  #     - SQS__KARMA_COIN_MINTED=karmapost-karma-coins-minted-profile
+  #     - SQS__STUDENT_FUNDS_COURSES_UPDATED=funds-student_funds_courses_updated-profile
+  #     - S3_MEDIA_BUCKET=cq-${ENVIRONMENT}
+  #     - SENTRY_DNS
+  #     - PINECONE_API_KEY=a1249be8-e791-4271-a123-1c70e47ec9b9
+  #     - PINECONE_ENVIRONMENT=gcp-starter
+  #     - PINECONE_INDEX_NAME=ak-quickstartz
+  #   termination:
+  #     grace: 30
+  #   scale:
+  #     count: 1-2
+  #     cpu: 256
+  #     memory: 512

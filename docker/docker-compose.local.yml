@@ -1,0 +1,99 @@
+version: "3.8"
+services:
+  db_profile:
+    image: postgres:14
+    container_name: db_profile
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_SERVER=db_profile
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=app
+      - DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+  adminer_profile:
+    image: adminer
+    container_name: adminer_profile
+    restart: always
+    ports:
+      - 8082:8080
+
+  localstack:
+    image: localstack/localstack:1.2.0
+    ports:
+      - "4566"
+    environment:
+      - SERVICES=sns,sqs,s3
+      - DEBUG=0
+      - DEFAULT_REGION=us-east-1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - HOSTNAME_EXTERNAL=localstack
+      - DOCKER_DEFAULT_PLATFORM=linux/amd64
+    volumes:
+      - /tmp/localstack:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  web_profile:
+    build:
+      context: ./../
+      dockerfile: ./docker/Dockerfile
+      target: webserver
+    depends_on:
+      - db_profile
+      - localstack
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+      - ./../:/app
+    ports:
+      - "8000:8000"
+    container_name: web_profile
+    environment:
+      - BACKEND_CORS_ORIGINS=["http://localhost:3000","http://localhost:8000"]
+      - DOCKER_DEFAULT_PLATFORM=linux/amd64
+
+  profile_user_updated_consumer:
+    restart: always
+    build:
+      context: ./../
+      dockerfile: ./docker/Dockerfile
+      target: consumer
+    depends_on:
+      - web_profile
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+      - ./../:/app
+    container_name: consumer_profile
+    command: watchmedo auto-restart --recursive --pattern="*.py;*.env" --directory="./app" -- python -m app.consumer.user_updated
+
+  profile_karma_coins_minted:
+    restart: always
+    build:
+      context: ./../
+      dockerfile: ./docker/Dockerfile
+      target: consumer
+    depends_on:
+      - web_profile
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+      - ./../:/app
+    container_name: consumer_karma_coins
+    command: watchmedo auto-restart --recursive --pattern="*.py;*.env" --directory="./app" -- python -m app.consumer.karma_coins_minted
+
+  profile_student_funds_courses_updated:
+    restart: always
+    build:
+      context: ./../
+      dockerfile: ./docker/Dockerfile
+      target: consumer
+    depends_on:
+      - web_profile
+    volumes:
+      - ~/.config/gcloud:/root/.config/gcloud
+      - ./../:/app
+    container_name: consumer_student_funds_courses_updated
+    command: watchmedo auto-restart --recursive --pattern="*.py;*.env" --directory="./app" -- python -m app.consumer.student_funds_courses_updated
+
+volumes:
+  app-db-data:

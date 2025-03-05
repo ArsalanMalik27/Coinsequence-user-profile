@@ -1,0 +1,12 @@
+**/*.pyc
+**/__pycache__
+
+!.gitignore
+/.env
+/.venv
+/.idea
+/myenv
+/bin
+*.cfg
+
+**/init.sh
